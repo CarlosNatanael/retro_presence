@@ -1,0 +1,5 @@
+pypresence
+requests
+psutil
+pygetwindow
+python-dotenv

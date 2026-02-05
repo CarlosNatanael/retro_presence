@@ -32,34 +32,35 @@ if __name__ == "__main__":
     while True:
         info = buscar_jogo_no_titulo()
         
-        if info and info['jogo'] != "Menu":
-            if info['jogo'] != ultimo_jogo_detectado:
-                print(f"Novo jogo detectado: {info['jogo']}. Buscando dados no RA...")
-                
-                console_id = CONSOLE_MAP.get(info['console'])
-                if console_id:
-                    game_id = buscar_game_id(info['jogo'], console_id)
-                    if game_id:
-                        dados_cache = obter_detalhes_jogo(game_id)
-                        ultimo_jogo_detectado = info['jogo']
-                        print(f"Dados carregados: {dados_cache['titulo']} ({dados_cache['console']})")
-                    else:
-                        print("Jogo não encontrado na base do RA.")
-                else:
-                    print(f"Console '{info['console']}' não mapeado em constants.py")
-
-            if dados_cache:
-                rpc.atualizar_status(
-                    dados_cache['titulo'], 
-                    dados_cache['console'], 
-                    dados_cache['imagem'], 
-                    tempo_sessao
-                )
-                print(f"Rich Presence Ativo: {dados_cache['titulo']} | Imagem: {dados_cache['imagem']}")
-        
-        elif info and info['jogo'] == "Menu":
-            print("RALibRetro aberto, mas nenhum jogo carregado.")
-            ultimo_jogo_detectado = None
-            dados_cache = None
+        if info:
+            if info['jogo'] != "Menu":
+                if info['jogo'] != ultimo_jogo_detectado:
+                    print(f"Novo jogo detectado: {info['jogo']}")
+                    
+                    console_id = CONSOLE_MAP.get(info['console'])
+                    if console_id:
+                        game_id = buscar_game_id(info['jogo'], console_id)
+                        if game_id:
+                            dados_cache = obter_detalhes_jogo(game_id)
+                            ultimo_jogo_detectado = info['jogo']
+                            tempo_sessao = time.time()
+                    
+                if dados_cache:
+                    rpc.atualizar_status(
+                        titulo=dados_cache['titulo'],
+                        console=dados_cache['console'],
+                        url_imagem=dados_cache['imagem'],
+                        tempo_inicio=tempo_sessao
+                    )
+            else:
+                if ultimo_jogo_detectado != "Menu":
+                    rpc.limpar()
+                    ultimo_jogo_detectado = "Menu"
+                    print("No Menu do RALibRetro")
+        else:
+            if ultimo_jogo_detectado is not None:
+                print("RALibRetro fechado.")
+                rpc.limpar()
+                ultimo_jogo_detectado = None
 
         time.sleep(15)

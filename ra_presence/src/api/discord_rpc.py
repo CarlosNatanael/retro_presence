@@ -23,7 +23,7 @@ class DiscordRPC:
             state=console,
             large_image=url_imagem,
             large_text=titulo,
-            small_image="ralibretro_logo",
+            small_image="ralibretro_logo.png",
             small_text="RALibRetro Emulator",
             start=tempo_inicio
         )

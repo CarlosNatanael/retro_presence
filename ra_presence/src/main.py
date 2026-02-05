@@ -3,9 +3,14 @@ import psutil
 import time
 from api.ra_api import buscar_game_id, obter_detalhes_jogo
 from core.constants import CONSOLE_MAP
+from api.discord_rpc import DiscordRPC
+from config import DISCORD_CLIENT_ID
 
 ultimo_jogo_detectado = None
 dados_cache = None
+rpc = DiscordRPC(DISCORD_CLIENT_ID)
+rpc.conectar()
+tempo_sessao = None
 
 def buscar_jogo_no_titulo():
     processo_ativo = any("RALibRetro.exe" in p.name() for p in psutil.process_iter())
@@ -44,6 +49,12 @@ if __name__ == "__main__":
                     print(f"Console '{info['console']}' não mapeado em constants.py")
 
             if dados_cache:
+                rpc.atualizar_status(
+                    dados_cache['titulo'], 
+                    dados_cache['console'], 
+                    dados_cache['imagem'], 
+                    tempo_sessao
+                )
                 print(f"Rich Presence Ativo: {dados_cache['titulo']} | Imagem: {dados_cache['imagem']}")
         
         elif info and info['jogo'] == "Menu":

@@ -17,15 +17,18 @@ def obter_jogo_atual():
     return None
 
 def obter_detalhes_jogo(game_id):
-    url = f"https://retroachievements.org/API/API_GetGame.php?z={RA_USER}&y={RA_API_KEY}&i={game_id}"
+    url = f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?z={RA_USER}&y={RA_API_KEY}&g={game_id}&u={RA_USER}"
     try:
         response = requests.get(url, timeout=10)
         data = response.json()
+        
+        image_path = data.get('ImageIcon') 
+        
         return {
             "titulo": data.get('Title'),
-            "imagem": f"https://media.retroachievements.org{data.get('ImageIconPath')}",
-            "console": data.get('ConsoleName'),
-            "id": game_id
+            "imagem": f"https://media.retroachievements.org{image_path}" if image_path else None,
+            "console": data.get('ConsoleName')
         }
-    except:
+    except Exception as e:
+        print(f"[ERRO API] Falha ao obter detalhes: {e}")
         return None

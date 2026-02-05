@@ -17,14 +17,16 @@ class DiscordRPC:
     def atualizar_status(self, titulo, console, url_imagem, tempo_inicio):
         if not self.conectado:
             return
-        
+
+        print(f"[RPC] Tentando carregar imagem: {url_imagem}")
+
         self.rpc.update(
             details=f"Jogando {titulo}",
             state=console,
             large_image=url_imagem,
             large_text=titulo,
-            small_image="ralibretro_logo.png",
-            small_text="RALibRetro Emulator",
+            small_image="saida",
+            small_text="RALibRetro",
             start=tempo_inicio
         )
 

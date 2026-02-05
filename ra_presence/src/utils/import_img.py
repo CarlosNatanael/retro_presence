@@ -11,4 +11,4 @@ def resize_image(input_path, output_path, width=1024, height=576, format="PNG"):
     size_mb = os.path.getsize(output_path) / (1024 * 1024)
     if size_mb > 10:
         raise ValueError("A imagem ultrapassa o tamanho máximo de 10MB.")
-resize_image("retropresence.png", "saida.png", format="PNG")
+resize_image("ralibretro_logo.png", "saida.png", format="PNG")

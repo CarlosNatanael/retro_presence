@@ -1,4 +1,3 @@
-# ra_presence/src/api/discord_rpc.py
 from pypresence import Presence
 
 class DiscordRPC:
@@ -22,7 +21,7 @@ class DiscordRPC:
 
         try:
             self.rpc.update(
-                details=f"{texto_acao} {titulo}", # <-- Usa o texto que você digitou no App
+                details=f"{texto_acao} {titulo}",
                 state=console,
                 large_image=url_imagem,
                 large_text=titulo,

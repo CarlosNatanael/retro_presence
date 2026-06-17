@@ -50,7 +50,6 @@ class RetroPresenceApp(ctk.CTk):
 
     # --- FUNÇÃO SEGURA PARA ESCREVER NO LOG ---
     def log(self, mensagem):
-        # Usa o .after para garantir que a interface seja atualizada de forma segura
         self.after(0, self._inserir_log, mensagem)
 
     def _inserir_log(self, mensagem):

@@ -1,3 +1,4 @@
+# ra_presence/src/api/discord_rpc.py
 from pypresence import Presence
 
 class DiscordRPC:
@@ -14,17 +15,18 @@ class DiscordRPC:
         except Exception as e:
             print(f"[ERRO RPC] Falha ao conectar: {e}")
 
-    def atualizar_status(self, titulo, console, url_imagem, tempo_inicio, console_icon="saida"):
+    # Novo parâmetro: texto_acao
+    def atualizar_status(self, titulo, console, url_imagem, tempo_inicio, console_icon="saida", texto_acao="Jogando"):
         if not self.conectado:
             return
 
         try:
             self.rpc.update(
-                details=f"Jogando {titulo}",
+                details=f"{texto_acao} {titulo}", # <-- Usa o texto que você digitou no App
                 state=console,
-                large_image=url_imagem, # <-- Volta a URL do jogo para cá
+                large_image=url_imagem,
                 large_text=titulo,
-                small_image=console_icon, # <-- O ícone do console volta para cá
+                small_image=console_icon,
                 small_text=console,
                 start=tempo_inicio
             )

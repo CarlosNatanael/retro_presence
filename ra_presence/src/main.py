@@ -1,12 +1,20 @@
-import psutil
-import time
-import threading
-import customtkinter as ctk
-import os
 from api.ra_api import obter_detalhes_jogo, obter_jogo_atual
 from api.discord_rpc import DiscordRPC
 from core.constants import DISCORD_CONSOLE_ASSETS
 from config import DISCORD_CLIENT_ID
+import customtkinter as ctk
+import threading
+import psutil
+import time
+import sys
+import os
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 rpc = DiscordRPC(DISCORD_CLIENT_ID)
 
@@ -15,15 +23,15 @@ class RetroPresenceApp(ctk.CTk):
         super().__init__()
         self.title("RA Discord Presence")
         self.geometry("430x430")
+
         caminho_script = os.path.dirname(os.path.abspath(__file__))
         caminho_icone = os.path.join(caminho_script, "..", "assets", "icone.ico")
-        
         try:
             self.iconbitmap(caminho_icone)
         except Exception as e:
-            print(f"[AVISO] Ícone não encontrado no caminho: {caminho_icone}")
+            pass # Ignora silenciosamente se o ícone não for encontrado
+
         self.resizable(False, False)
-        
         self.monitorando = False
         self.ultimo_game_id = None
         self.tempo_sessao = None

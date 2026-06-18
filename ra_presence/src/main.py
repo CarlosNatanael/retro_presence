@@ -1,13 +1,13 @@
+import sys
+import os
+import psutil
+import time
+import threading
+import customtkinter as ctk
 from api.ra_api import obter_detalhes_jogo, obter_jogo_atual
 from api.discord_rpc import DiscordRPC
 from core.constants import DISCORD_CONSOLE_ASSETS
 from config import DISCORD_CLIENT_ID
-import customtkinter as ctk
-import threading
-import psutil
-import time
-import sys
-import os
 
 def resource_path(relative_path):
     try:
@@ -22,52 +22,54 @@ class RetroPresenceApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("RA Discord Presence")
-        self.geometry("430x430")
-
-        caminho_script = os.path.dirname(os.path.abspath(__file__))
-        caminho_icone = os.path.join(caminho_script, "..", "assets", "icone.ico")
+        self.geometry("450x520")
+        self.resizable(False, False)
+        
+        caminho_icone = resource_path(os.path.join("assets", "icone.ico"))
         try:
             self.iconbitmap(caminho_icone)
-        except Exception as e:
-            pass # Ignora silenciosamente se o ícone não for encontrado
-
-        self.resizable(False, False)
+        except Exception:
+            pass
+            
         self.monitorando = False
         self.ultimo_game_id = None
         self.tempo_sessao = None
-        
-        # --- ELEMENTOS DA INTERFACE ---
+
         self.label_status = ctk.CTkLabel(self, text="Status: Aguardando...", text_color="gray", font=("Arial", 14, "bold"))
         self.label_status.pack(pady=(15, 5))
         
-        self.label_acao = ctk.CTkLabel(self, text="Ação atual no Discord (Ex: Jogando, Desenvolvendo):")
+        self.label_acao = ctk.CTkLabel(self, text="Primeira linha (Ex: Jogando, Desenvolvendo):")
         self.label_acao.pack(pady=(5, 0))
         
         self.entrada_acao = ctk.CTkEntry(self, width=250)
         self.entrada_acao.insert(0, "Jogando")
         self.entrada_acao.pack(pady=5)
+
+        self.label_estado = ctk.CTkLabel(self, text="Segunda linha (Vazio = Console):")
+        self.label_estado.pack(pady=(5, 0))
+        
+        self.entrada_estado = ctk.CTkEntry(self, width=250)
+        self.entrada_estado.insert(0, "") # Começa vazio
+        self.entrada_estado.pack(pady=5)
         
         self.btn_toggle = ctk.CTkButton(self, text="Iniciar Monitoramento", command=self.toggle_monitor)
         self.btn_toggle.pack(pady=10)
         
-        # Caixa de Log
         self.caixa_log = ctk.CTkTextbox(self, width=400, height=180, state="disabled")
         self.caixa_log.pack(pady=(10, 15))
         
         self.log("Aplicativo iniciado. Aguardando comando.")
 
-    # --- FUNÇÃO SEGURA PARA ESCREVER NO LOG ---
     def log(self, mensagem):
         self.after(0, self._inserir_log, mensagem)
 
     def _inserir_log(self, mensagem):
         hora_atual = time.strftime("%H:%M:%S")
-        self.caixa_log.configure(state="normal") # Libera a caixa para escrita
+        self.caixa_log.configure(state="normal")
         self.caixa_log.insert("end", f"[{hora_atual}] {mensagem}\n")
-        self.caixa_log.see("end") # Rola a barra para a última linha automaticamente
-        self.caixa_log.configure(state="disabled") # Trava a caixa de novo
+        self.caixa_log.see("end")
+        self.caixa_log.configure(state="disabled")
 
-    # --- CONTROLE DO MONITORAMENTO ---
     def toggle_monitor(self):
         if not self.monitorando:
             self.monitorando = True
@@ -89,7 +91,6 @@ class RetroPresenceApp(ctk.CTk):
             self.ultimo_game_id = None
             self.log("Monitoramento interrompido. Discord limpo.")
 
-    # --- LOOP EM SEGUNDO PLANO ---
     def loop_monitoramento(self):
         self.label_status.configure(text="Status: Monitorando RALibretro...", text_color="green")
         self.log("Procurando pelo emulador...")
@@ -103,8 +104,11 @@ class RetroPresenceApp(ctk.CTk):
                 
                 if game_id:
                     acao_atual = self.entrada_acao.get()
+                    estado_atual = self.entrada_estado.get()
+                    mudou_texto = (not hasattr(self, 'ultima_acao') or self.ultima_acao != acao_atual or
+                                   not hasattr(self, 'ultimo_estado') or self.ultimo_estado != estado_atual)
                     
-                    if game_id != self.ultimo_game_id or not hasattr(self, 'ultima_acao') or self.ultima_acao != acao_atual:
+                    if game_id != self.ultimo_game_id or mudou_texto:
                         detalhes = obter_detalhes_jogo(game_id)
                         
                         if detalhes:
@@ -114,11 +118,13 @@ class RetroPresenceApp(ctk.CTk):
                                 
                             self.ultimo_game_id = game_id
                             self.ultima_acao = acao_atual
+                            self.ultimo_estado = estado_atual
                             
                             icone_curto = DISCORD_CONSOLE_ASSETS.get(detalhes['console'], "unknown")
                             url_icone_console = f"https://static.retroachievements.org/assets/images/system/{icone_curto}.png"
                             
-                            self.log(f"Discord atualizado -> {acao_atual} {detalhes['titulo']}")
+                            log_estado = estado_atual if estado_atual.strip() else detalhes['console']
+                            self.log(f"Discord atualizado -> {acao_atual} {detalhes['titulo']} | {log_estado}")
                             
                             rpc.atualizar_status(
                                 titulo=detalhes['titulo'],
@@ -126,7 +132,8 @@ class RetroPresenceApp(ctk.CTk):
                                 url_imagem=detalhes['imagem'],
                                 tempo_inicio=self.tempo_sessao,
                                 console_icon=url_icone_console,
-                                texto_acao=acao_atual
+                                texto_acao=acao_atual,
+                                texto_estado=estado_atual
                             )
             else:
                 if self.ultimo_game_id is not None:

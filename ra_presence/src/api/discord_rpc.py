@@ -14,15 +14,16 @@ class DiscordRPC:
         except Exception as e:
             print(f"[ERRO RPC] Falha ao conectar: {e}")
 
-    # Novo parâmetro: texto_acao
-    def atualizar_status(self, titulo, console, url_imagem, tempo_inicio, console_icon="saida", texto_acao="Jogando"):
+    def atualizar_status(self, titulo, console, url_imagem, tempo_inicio, console_icon="saida", texto_acao="Jogando", texto_estado=""):
         if not self.conectado:
             return
+
+        estado_final = texto_estado if texto_estado.strip() != "" else console
 
         try:
             self.rpc.update(
                 details=f"{texto_acao} {titulo}",
-                state=console,
+                state=estado_final,
                 large_image=url_imagem,
                 large_text=titulo,
                 small_image=console_icon,
